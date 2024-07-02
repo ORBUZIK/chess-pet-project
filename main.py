@@ -1,6 +1,7 @@
-from src import *
+from game import *
+from player import *
+from board import *
 from figures import *
-
 
 def main():
     pass
