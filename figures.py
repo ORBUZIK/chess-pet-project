@@ -1,5 +1,3 @@
-# from dot import *
-
 
 class Figure:
     icons = None
@@ -17,10 +15,10 @@ class Figure:
                 new_x = self.position[0] + direction[0] * i
                 new_y = self.position[1] + direction[1] * i
 
-                if 0 <= new_x < 8 and 0 <= new_y < 8:  # Проверка границ доски
-                    if board[new_x][new_y] is None:  # Пустая клетка
+                if 0 <= new_x <= 7 and 0 <= new_y <= 7:  # Проверка границ доски
+                    if board[new_y][new_x] is None:  # Пустая клетка
                         valid_moves.append((new_x, new_y))
-                    elif board[new_x][new_y].color != self.color:  # Вражеская фигура
+                    elif board[new_y][new_x].color != self.color:  # Вражеская фигура
                         valid_moves.append((new_x, new_y))
                         break
                     else:  # Собственная фигура
@@ -36,8 +34,6 @@ class Rook(Figure):
     icons = ["♖", "♜"]
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]  # Вправо, влево, вверх, вниз
 
-    # icon_white = 
-    # icon_black = 
 
 
 # Конь
@@ -46,10 +42,21 @@ class Knight(Figure):
     directions = [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1), (-2, 1), (-1, 2)]
 
 
-    # !!! ПЕРЕЗАПИСАТЬ get_valid_moves !!!
+    def get_valid_moves(self, board):
+        valid_moves = []
 
-    # icon_white = 
-    # icon_black = 
+        for direction in self.directions:
+            new_x = self.position[0] + direction[0]
+            new_y = self.position[1] + direction[1]
+
+            if 0 <= new_x <= 7 and 0 <= new_y <= 7:  # Проверка границ доски
+                if board[new_y][new_x] is None:  # Пустая клетка
+                    valid_moves.append((new_x, new_y))
+                elif board[new_y][new_x].color != self.color:  # Вражеская фигура
+                    valid_moves.append((new_x, new_y))
+        
+        return valid_moves
+
 
 
 # Слон
@@ -57,8 +64,6 @@ class Bishop(Figure):
     icons = ["♗", "♝"]
     directions = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 
-    # icon_white = 
-    # icon_black = 
 
 
 # Король
@@ -67,10 +72,32 @@ class King(Figure):
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
 
-    # !!! ПЕРЕЗАПИСАТЬ get_valid_moves !!!
+    def get_valid_moves(self, board):
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+        possible_moves = []
 
-    # icon_white = 
-    # icon_black = 
+        for direction in directions:
+            new_x = self.position[0] + direction[0]
+            new_y = self.position[1] + direction[1]
+
+            if 0 <= new_x <= 7 and 0 <= new_y <= 7:
+                target_piece = board[new_y][new_x]
+                if target_piece is None or target_piece.color != self.color:
+                    possible_moves.append((new_x, new_y))
+
+        valid_moves = [move for move in possible_moves if not self.is_under_attack(move, board)]
+        
+        return valid_moves
+
+    def is_under_attack(self, position, board):
+        opponent_color = 'white' if self.color == 'black' else 'black'
+        for row in board:
+            for piece in row:
+                if piece is not None and piece.color == opponent_color:
+                    if position in piece.get_valid_moves(board):
+                        return True
+        return False
+
 
 
 # Королева
@@ -78,15 +105,33 @@ class Qween(Figure):
     icons = ["♕", "♛"]
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
-    # icon_white = 
-    # icon_black = 
 
 
 # Пешка
 class Pawn(Figure):
     icons = ["♙", "♟"]
-    directions = [(-1, 1), (0, 1), (1, 1)]
+    directions = [(0, 1), (-1, 1), (1, 1)]
 
-    # icon_white = 
-    # icon_black = 
+
+    def get_valid_moves(self, board):
+        valid_moves = []
+
+        direction = self.directions[0]
+        new_x = self.position[0] + direction[0]
+        new_y = self.position[1] + direction[1]
+
+        if 0 <= new_x <= 7 and 0 <= new_y <= 7:  # Проверка границ доски
+            if board[new_y][new_x] is None:  # Пустая клетка
+                valid_moves.append((new_x, new_y))
+
+        for direction in self.directions[1:]:
+            new_x = self.position[0] + direction[0]
+            new_y = self.position[1] + direction[1]
+
+            if 0 <= new_x <= 7 and 0 <= new_y <= 7:  # Проверка границ доски
+                if board[new_y][new_x] is not None and board[new_y][new_x].color != self.color:  # По диагонали стоит вражеская фигура
+                    valid_moves.append((new_x, new_y))
+        
+        return valid_moves
+
 
