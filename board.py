@@ -90,30 +90,62 @@ class Board:
         board[0][4] = King(0, (4, 0)) # Черный король
         board[7][4] = King(1, (4, 7)) # Белый король
 
+
+        # ====
+        board[1][4] = Qween(0, (4, 1))
+        board[5][3] = Qween(0, (3, 5))
+        board[6][4] = Bishop(1, (4, 6))
+        # ====
+
         return board
         
 
     # Отображаем доску
     def display_board(self):
 
-        middle_board = self.clean_board_2
+        drawn_board = [
+            ['  ', 'a ', 'b ', 'c ', 'd ', 'e ', 'f ', 'g ', 'h '],
+            ['8 '] + [None for _ in range(8)] + [' 8'],
+            ['7 '] + [None for _ in range(8)] + [' 7'],
+            ['6 '] + [None for _ in range(8)] + [' 6'],
+            ['5 '] + [None for _ in range(8)] + [' 5'],
+            ['4 '] + [None for _ in range(8)] + [' 4'],
+            ['3 '] + [None for _ in range(8)] + [' 3'],
+            ['2 '] + [None for _ in range(8)] + [' 2'],
+            ['1 '] + [None for _ in range(8)] + [' 1'],
+            ['  ', 'a ', 'b ', 'c ', 'd ', 'e ', 'f ', 'g ', 'h '],
+        ]
 
+        # Заполнение доски фигурами и полями
         for i in range(8):
             for j in range(8):
                 cur_ceil = self.board[i][j]
 
                 if isinstance(cur_ceil, Figure):
-                    middle_board[1+i][1+j] = cur_ceil.icon + ' '
+                    drawn_board[1+i][1+j] = cur_ceil.icon + ' '
 
+                elif i % 2 == 0:
+                    if j % 2 == 0:
+                        drawn_board[1+i][1+j] = '⬜️'
+                    else:
+                        drawn_board[1+i][1+j] = '⬛️'
+                else:
+                    if j % 2 == 0:
+                        drawn_board[1+i][1+j] = '⬛️'
+                    else:
+                        drawn_board[1+i][1+j] = '⬜️'
+
+
+        # Отрисовка доски в терминале
         print("\n"*15)
 
-        for i in middle_board:
+        for i in drawn_board:
             print(*i, sep='')
         
         print("\n"*35)
     
 
-    def move_figure(self, start_pos, end_pos):
+    def move_figure(self, start_pos, end_pos) -> None:
         figure = self.board[start_pos[1]][start_pos[0]]
         
         # Выбрана ли фигура
@@ -121,16 +153,49 @@ class Board:
             return "Выбрана пустая клетка!!!"
 
         # Можно ли сделать ход
-        if end_pos not in figure.valid_moves:
+        if end_pos not in figure.get_valid_moves(self.board):
             return "На данную клетку нельзя сходить!!!"
         
+        # Проверяем, не будет ли король находится под атакой
+        temp_board = [row[:] for row in self.board]
+        cur_king = None
+        for row in temp_board:
+            for ceil in row:
+                if isinstance(ceil, King) and ceil.color == figure.color:
+                    cur_king = ceil
+                    break
+            if cur_king:
+                break
+        if not cur_king:
+            return "Не получилось найти короля 😕"
+        
+        temp_board[end_pos[1]][end_pos[0]] = temp_board[start_pos[1]][start_pos[0]]
+        temp_board[start_pos[1]][start_pos[0]] = None
+        if cur_king.is_in_check(cur_king.position, temp_board):
+            return "На данную клетку нельзя сходить!!!"
+
+        
+        # Передвигаем фигуру
         figure.position = end_pos
+        self.board[end_pos[1]][end_pos[0]] = figure
         self.board[start_pos[1]][start_pos[0]] = None
 
 
+# TESTING
+a1 = Board()
+a1.display_board()
+# print(a1.move_figure((4, 6), (6, 4)))
+# a1.display_board()
 
-Board().display_board()
-    
+print(a1.move_figure((3, 5), (4, 6)))
+a1.display_board()
+king = a1.board[7][4]
+print(king.is_checkmate(a1.board))
+
+
+
+
+
 
 # clean_board_1 = [
 #         "◼️ ◻️ ◼️ ◻️ ◼️ ◻️ ◼️ ◻️",
@@ -156,26 +221,3 @@ Board().display_board()
 #         "  a b c d e f g h",
 #     ]
  
-
-
-    # trans_alph_x = {
-    #     'a': 1,
-    #     'b': 2,
-    #     'c': 3,
-    #     'd': 4,
-    #     'e': 5,
-    #     'f': 6,
-    #     'g': 7,
-    #     'h': 8,
-    # }
-
-    # trans_alph_y = {
-    #     '1': 8,
-    #     '2': 7,
-    #     '3': 6,
-    #     '4': 5,
-    #     '5': 4,
-    #     '6': 3,
-    #     '7': 2,
-    #     '8': 1,
-    # }
