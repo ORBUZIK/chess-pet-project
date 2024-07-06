@@ -4,7 +4,8 @@ from board import *
 from figures import *
 
 def main():
-    pass
+    game = Game()
+    game.play()
 
 
 if __name__ == "__main__":

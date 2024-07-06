@@ -88,27 +88,6 @@ class King(Figure):
         valid_moves = [move for move in possible_moves if not self.is_in_check(move, board)]
         
         return valid_moves
-    
-    def get_valid_moves_modified(self, piece, board):
-        valid_moves = []
-
-        for direction in piece.directions:
-            for i in range(1, 8):  # Максимальное количество клеток в любом направлении
-                new_x = piece.position[0] + direction[0] * i
-                new_y = piece.position[1] + direction[1] * i
-
-                if 0 <= new_x <= 7 and 0 <= new_y <= 7:  # Проверка границ доски
-                    if board[new_y][new_x] is None:  # Пустая клетка
-                        valid_moves.append((new_x, new_y))
-                    elif board[new_y][new_x].color is not None:  # Вражеская или своя фигура
-                        valid_moves.append((new_x, new_y))
-                        break
-                    else:  # Собственная фигура
-                        break
-                else:
-                    break
-        
-        return valid_moves
 
     def is_in_check(self, position, board):
         opponent_color = 1 if self.color == 0 else 0
@@ -117,34 +96,7 @@ class King(Figure):
                 if piece is not None and piece.color == opponent_color:
                     if position in piece.get_valid_moves(board):
                         return True
-        return False
-    
-    def is_checkmate(self, board):
-        if self.is_in_check(self.position, board):
-            king_valid_moves = self.get_valid_moves(board)
-            opponent_color = 1 if self.color == 0 else 0
-            
-            for valid_move in king_valid_moves:    
-                next_move = 0
-                for row in board:
-                    for piece in row:
-                        if piece is not None and piece.color == opponent_color:
-                            if valid_move in self.get_valid_moves_modified(piece, board):
-                                king_valid_moves.remove(valid_move)
-                                next_move = 1
-                                break
-                    if next_move:
-                        next_move = 0
-                        break
-            
-            if len(king_valid_moves) == 0:
-                return True
-            
-            print(king_valid_moves)
-            return False
-        
-        return False
-                
+        return False                
 
 
 
