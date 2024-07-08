@@ -1,5 +1,4 @@
 
-from xmlrpc.client import Boolean, boolean
 from figures import *
 
 
@@ -15,8 +14,8 @@ class Board:
         board = [[None for j in range(8)] for i in range(8)]
         
         # Расстановка пешек
-        board[1] = [Pawn(0, (i, 1)) for i in range(1, 9)]
-        board[6] = [Pawn(1, (i, 6)) for i in range(1, 9)]
+        board[1] = [Pawn(0, (i, 1)) for i in range(8)]
+        board[6] = [Pawn(1, (i, 6)) for i in range(8)]
 
         # Расстановка ладей
         board[0][0] = Rook(0, (0, 0)) # Черная ладья
@@ -28,17 +27,17 @@ class Board:
         board[0][1] = Knight(0, (1, 0)) # Черный конь
         board[0][6] = Knight(0, (6, 0)) # Черный конь
         board[7][1] = Knight(1, (1, 7)) # Белый конь
-        board[7][6] = Knight(1, (6, 7)) # Белый конь
+        # board[7][6] = Knight(1, (6, 7)) # Белый конь
 
         # Расстановка слонов
         board[0][2] = Bishop(0, (2, 0)) # Черный слон
         board[0][5] = Bishop(0, (5, 0)) # Черный слон
         board[7][2] = Bishop(1, (2, 7)) # Белый слон
-        board[7][5] = Bishop(1, (5, 7)) # Белый слон
+        # board[7][5] = Bishop(1, (5, 7)) # Белый слон
 
         # Расстановка королев
         board[0][3] = Qween(0, (3, 0)) # Черная королева
-        board[7][3] = Qween(1, (3, 7)) # Белая королева
+        # board[7][3] = Qween(1, (3, 7)) # Белая королева
 
         # Расстановка королей
         board[0][4] = self.black_king # Черный король
@@ -46,9 +45,10 @@ class Board:
 
 
         # ====
-        # board[1][4] = Qween(0, (4, 1))
-        # board[5][3] = Qween(0, (3, 5))
+        board[1][4] = Qween(0, (4, 1))
+        board[5][3] = Qween(0, (3, 5))
         # board[6][4] = Bishop(1, (4, 6))
+        # board[6][4] = None
         # ====
 
         return board
@@ -99,42 +99,8 @@ class Board:
         print("\n"*35)
     
 
-    # def move_figure(self, start_pos, end_pos) -> None:
-    #     figure = self.board[start_pos[1]][start_pos[0]]
-        
-    #     # Выбрана ли фигура
-    #     if figure is None:
-    #         return "Выбрана пустая клетка!!!"
 
-    #     # Можно ли сделать ход
-    #     if end_pos not in figure.get_valid_moves(self.board):
-    #         return "На данную клетку нельзя сходить!!!"
-        
-    #     # Проверяем, не будет ли король находится под атакой
-    #     temp_board = [row[:] for row in self.board]
-    #     cur_king = None
-    #     for row in temp_board:
-    #         for ceil in row:
-    #             if isinstance(ceil, King) and ceil.color == figure.color:
-    #                 cur_king = ceil
-    #                 break
-    #         if cur_king:
-    #             break
-    #     if not cur_king:
-    #         return "Не получилось найти короля 😕"
-        
-    #     temp_board[end_pos[1]][end_pos[0]] = temp_board[start_pos[1]][start_pos[0]]
-    #     temp_board[start_pos[1]][start_pos[0]] = None
-    #     if cur_king.is_in_check(cur_king.position, temp_board):
-    #         return "На данную клетку нельзя сходить!!!"
-
-        
-    #     # Передвигаем фигуру
-    #     figure.position = end_pos
-    #     self.board[end_pos[1]][end_pos[0]] = figure
-    #     self.board[start_pos[1]][start_pos[0]] = None
-
-    def move_figure(self, start_pos: tuple, end_pos: tuple, player) -> Boolean:
+    def move_figure(self, start_pos: tuple, end_pos: tuple, player) -> bool:
         start_x, start_y = start_pos
         end_x, end_y = end_pos
         figure = self.board[start_y][start_x]
@@ -146,7 +112,7 @@ class Board:
         
         # Правильный ли цвет
         if figure.color != player.color:
-            print("Можно двигать только свои фигуры")
+            print("Можно двигать только свои фигуры!!!")
             return False
         
         # Можно ли сделать ход
@@ -155,22 +121,77 @@ class Board:
             return False
         
         # Проверяем, не будет ли король находится под атакой
-        # temp_board = [row[:] for row in self.board]
-        # temp_board[end_y][end_x] = temp_board[start_y][start_x]
-        # temp_board[start_y][start_x] = None
-
-
         # Сделать ход -> посмотреть не находится ли король под атакой -> вернуть ход если да
+        target = self.board[end_y][end_x]
+        self.board[end_y][end_x] = figure
+        figure.position = end_pos
+        self.board[start_y][start_x] = None
 
+        if self.is_in_check(player.color):
+            print("Ход ставит вашего короля под удар!!!")
+
+            self.board[start_y][start_x] = figure
+            figure.position = start_pos
+            self.board[end_y][end_x] = target
+
+            return False
+
+        return True
 
 
     def is_in_check(self, color):
-        # Метод для проверки, находится ли король под шахом
-        pass
+        king_pos = self.white_king.position if color == 1 else self.black_king.position
+
+        for row in self.board:
+            for figure in row:
+                if figure and figure.color != color:
+                    if king_pos in figure.get_valid_moves(self.board):
+                        return True
+                    
+
+                    # РЕКУРСИЯ ПРОИСХОДИТ КОГДА figure доходит до белого короля
+
+        return False
+
 
     def is_checkmate(self, color):
-        # Метод для проверки мата
-        pass
+        
+        if not self.is_in_check(color):
+            return False
+        
+        cur_king = self.white_king if color == 1 else self.black_king
+        if len(cur_king.get_valid_moves(self.board)) != 0:
+            return False
+        
+        for y in range(8):
+            for x in range(8):
+                figure = self.board[y][x]
+                if figure and figure.color == color:
+
+                    for move in figure.get_valid_moves(self.board):
+                        move_x, move_y = move
+                        start_pos = figure.position
+                        target = self.board[move_y][move_x]
+
+                        self.board[move_y][move_x] = figure
+                        figure.position = move
+                        self.board[y][x] = None
+
+                        # Проверяем и возвращаем ход
+                        if not self.is_in_check(color):
+                            self.board[y][x] = figure
+                            figure.position = start_pos
+                            self.board[move_y][move_x] = target
+                            return False
+                        
+                        # Возвращаем ход
+                        self.board[y][x] = figure
+                        figure.position = start_pos
+                        self.board[move_y][move_x] = target
+        
+        return True
+
 
 
 # TESTING
+# Board().display_board()
