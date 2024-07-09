@@ -27,17 +27,17 @@ class Board:
         board[0][1] = Knight(0, (1, 0)) # Черный конь
         board[0][6] = Knight(0, (6, 0)) # Черный конь
         board[7][1] = Knight(1, (1, 7)) # Белый конь
-        # board[7][6] = Knight(1, (6, 7)) # Белый конь
+        board[7][6] = Knight(1, (6, 7)) # Белый конь
 
         # Расстановка слонов
         board[0][2] = Bishop(0, (2, 0)) # Черный слон
         board[0][5] = Bishop(0, (5, 0)) # Черный слон
         board[7][2] = Bishop(1, (2, 7)) # Белый слон
-        # board[7][5] = Bishop(1, (5, 7)) # Белый слон
+        board[7][5] = Bishop(1, (5, 7)) # Белый слон
 
         # Расстановка королев
         board[0][3] = Qween(0, (3, 0)) # Черная королева
-        # board[7][3] = Qween(1, (3, 7)) # Белая королева
+        board[7][3] = Qween(1, (3, 7)) # Белая королева
 
         # Расстановка королей
         board[0][4] = self.black_king # Черный король
@@ -45,11 +45,11 @@ class Board:
 
 
         # ====
-        board[1][4] = Qween(0, (4, 1))
-        board[5][3] = Qween(0, (3, 5))
-        # board[6][4] = Bishop(1, (4, 6))
-        # board[6][4] = None
-        board[0][3] = None
+        # board[1][1] = Pawn(1, (4, 1))
+        # board[5][3] = Qween(0, (3, 5))
+        # # board[6][4] = Bishop(1, (4, 6))
+        # # board[6][4] = None
+        # board[0][3] = None
         # ====
 
         return board
@@ -97,10 +97,10 @@ class Board:
         for i in drawn_board:
             print(*i, sep='')
         
-        print("\n"*35)
+        print("\n"*25)
     
 
-
+    # Перемещаем фигуру
     def move_figure(self, start_pos: tuple, end_pos: tuple, player, game_stage: int) -> bool:
         start_x, start_y = start_pos
         end_x, end_y = end_pos
@@ -138,22 +138,41 @@ class Board:
 
             return False
 
-        figure.update_valid_moves(self.board, game_stage)
+        # Смена фигуры, если пешка дошла до конца
+        if isinstance(figure, Pawn):
+            if figure.color == 1:
+                if figure.position[1] == 0:
+                    self.change_pawn(figure)
+            
+            else:
+                if figure.position[1] == 7:
+                    self.change_pawn(figure)
+
         return True
 
 
-    # def is_in_check(self, color):
-
-        # for row in self.board:
-        #     for figure in row:
-        #         if figure and figure.color != color:
-        #             if king_pos in figure.get_valid_moves(self.board):
-        #                 return True
-                    
-
-        #             # РЕКУРСИЯ ПРОИСХОДИТ КОГДА figure доходит до белого короля
-
-        # return False
+    # Меняем пешку на другую фигуру
+    def change_pawn(self, pawn):
+        while True:
+            print('На какую фигуру хотите поменять пешку?')
+            print('- Qween')
+            print('- Rook')
+            print('- Bishop')
+            print('- Knight')
+            print('Укажите букву: Q / R / B / K')
+            target_figure = input()
+            
+            pos_x, pos_y = pawn.position
+            if target_figure == "Q":
+                self.board[pos_y][pos_x] = Qween(pawn.color, pawn.position)
+            elif target_figure == "R":
+                self.board[pos_y][pos_x] = Rook(pawn.color, pawn.position)
+            elif target_figure == "B":
+                self.board[pos_y][pos_x] = Bishop(pawn.color, pawn.position)
+            elif target_figure == "K":
+                self.board[pos_y][pos_x] = Knight(pawn.color, pawn.position)
+            else:
+                print("Пожалуйста, выберите фигуру 😠")
 
 
     def is_checkmate(self, color, game_stage: int):

@@ -9,9 +9,8 @@ class Figure:
         self.color = color
         self.icon = self.icons[self.color]
     
-    
+
     def update_valid_moves(self, board, game_stage: int):
-        self.stage = game_stage
         valid_moves = []
 
         for direction in self.directions:
@@ -35,10 +34,7 @@ class Figure:
 
 
     def get_valid_moves(self, board, game_stage: int):
-        if self.stage == game_stage:
-            return self.valid_moves
-        else:
-            return self.update_valid_moves(board, game_stage)
+        return self.update_valid_moves(board, game_stage)
 
 
 # Ладья
@@ -55,7 +51,6 @@ class Knight(Figure):
 
 
     def update_valid_moves(self, board, game_stage: int):
-        self.stage = game_stage
         valid_moves = []
 
         for direction in self.directions:
@@ -73,10 +68,7 @@ class Knight(Figure):
 
 
     def get_valid_moves(self, board, game_stage: int):
-        if self.stage == game_stage:
-            return self.valid_moves
-        else:
-            return self.update_valid_moves(board, game_stage)
+        return self.update_valid_moves(board, game_stage)
 
 
 
@@ -173,7 +165,6 @@ class Pawn(Figure):
                 self.directions = [(0, 1), (-1, 1), (1, 1)]
 
 
-        self.stage = game_stage
         valid_moves = []
 
         for direction in self.directions[:-2]:
@@ -193,14 +184,11 @@ class Pawn(Figure):
                     valid_moves.append((new_x, new_y))
         
         self.valid_moves = valid_moves
-        return valid_moves    
+        return valid_moves
 
 
     def get_valid_moves(self, board, game_stage: int):
-        if self.stage == game_stage:
-            return self.valid_moves
-        else:
-            return self.update_valid_moves(board, game_stage)
+        return self.update_valid_moves(board, game_stage)
 
 
 

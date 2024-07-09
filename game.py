@@ -36,7 +36,7 @@ class Game:
             if self.board.move_figure(*move, player, self.stage):
                 
                 if self.board.is_checkmate(1 - player.color, self.stage):
-                    print('\n')
+                    self.board.display_board()
                     print(f'🥳 Игрок {player.number} победил 🥳')
                     print('\n')
                     break
