@@ -49,6 +49,7 @@ class Board:
         board[5][3] = Qween(0, (3, 5))
         # board[6][4] = Bishop(1, (4, 6))
         # board[6][4] = None
+        board[0][3] = None
         # ====
 
         return board
@@ -100,10 +101,11 @@ class Board:
     
 
 
-    def move_figure(self, start_pos: tuple, end_pos: tuple, player) -> bool:
+    def move_figure(self, start_pos: tuple, end_pos: tuple, player, game_stage: int) -> bool:
         start_x, start_y = start_pos
         end_x, end_y = end_pos
         figure = self.board[start_y][start_x]
+        cur_king = self.white_king if player.color == 1 else self.black_king
 
         # Выбрана ли фигура
         if figure is None:
@@ -116,7 +118,7 @@ class Board:
             return False
         
         # Можно ли сделать ход
-        if end_pos not in figure.get_valid_moves(self.board):
+        if end_pos not in figure.get_valid_moves(self.board, game_stage):
             print("На данную клетку нельзя сходить!!!")
             return False
         
@@ -127,7 +129,7 @@ class Board:
         figure.position = end_pos
         self.board[start_y][start_x] = None
 
-        if self.is_in_check(player.color):
+        if cur_king.is_in_check(self.board, game_stage):
             print("Ход ставит вашего короля под удар!!!")
 
             self.board[start_y][start_x] = figure
@@ -136,39 +138,43 @@ class Board:
 
             return False
 
+        figure.update_valid_moves(self.board, game_stage)
         return True
 
 
-    def is_in_check(self, color):
-        king_pos = self.white_king.position if color == 1 else self.black_king.position
+    # def is_in_check(self, color):
 
-        for row in self.board:
-            for figure in row:
-                if figure and figure.color != color:
-                    if king_pos in figure.get_valid_moves(self.board):
-                        return True
+        # for row in self.board:
+        #     for figure in row:
+        #         if figure and figure.color != color:
+        #             if king_pos in figure.get_valid_moves(self.board):
+        #                 return True
                     
 
-                    # РЕКУРСИЯ ПРОИСХОДИТ КОГДА figure доходит до белого короля
+        #             # РЕКУРСИЯ ПРОИСХОДИТ КОГДА figure доходит до белого короля
 
-        return False
+        # return False
 
 
-    def is_checkmate(self, color):
-        
-        if not self.is_in_check(color):
-            return False
-        
+    def is_checkmate(self, color, game_stage: int):
         cur_king = self.white_king if color == 1 else self.black_king
-        if len(cur_king.get_valid_moves(self.board)) != 0:
+        cur_king.update_valid_moves(self.board, game_stage)
+        
+        # Король находиться под атакой
+        if not cur_king.is_in_check(self.board, game_stage):
             return False
         
+        # Король никуда не может сходить
+        if len(cur_king.get_valid_moves(self.board, game_stage)) != 0:
+            return False
+        
+        # Проверяем, какие фигуры могут защитить короля
         for y in range(8):
             for x in range(8):
                 figure = self.board[y][x]
                 if figure and figure.color == color:
 
-                    for move in figure.get_valid_moves(self.board):
+                    for move in figure.get_valid_moves(self.board, game_stage):
                         move_x, move_y = move
                         start_pos = figure.position
                         target = self.board[move_y][move_x]
@@ -178,7 +184,7 @@ class Board:
                         self.board[y][x] = None
 
                         # Проверяем и возвращаем ход
-                        if not self.is_in_check(color):
+                        if not cur_king.is_in_check(self.board, game_stage):
                             self.board[y][x] = figure
                             figure.position = start_pos
                             self.board[move_y][move_x] = target

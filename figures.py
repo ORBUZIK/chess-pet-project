@@ -1,13 +1,17 @@
 
 class Figure:
     icons = None
+    valid_moves = []
+    stage = 0
 
     def __init__(self, color: int, position: tuple): #color 1 - white, 0 - black
         self.position = position
         self.color = color
         self.icon = self.icons[self.color]
-
-    def get_valid_moves(self, board):
+    
+    
+    def update_valid_moves(self, board, game_stage: int):
+        self.stage = game_stage
         valid_moves = []
 
         for direction in self.directions:
@@ -26,7 +30,15 @@ class Figure:
                 else:
                     break
         
+        self.valid_moves = valid_moves
         return valid_moves
+
+
+    def get_valid_moves(self, board, game_stage: int):
+        if self.stage == game_stage:
+            return self.valid_moves
+        else:
+            return self.update_valid_moves(board, game_stage)
 
 
 # Ладья
@@ -42,7 +54,8 @@ class Knight(Figure):
     directions = [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1), (-2, 1), (-1, 2)]
 
 
-    def get_valid_moves(self, board):
+    def update_valid_moves(self, board, game_stage: int):
+        self.stage = game_stage
         valid_moves = []
 
         for direction in self.directions:
@@ -55,7 +68,16 @@ class Knight(Figure):
                 elif board[new_y][new_x].color != self.color:  # Вражеская фигура
                     valid_moves.append((new_x, new_y))
         
+        self.valid_moves = valid_moves
         return valid_moves
+
+
+    def get_valid_moves(self, board, game_stage: int):
+        if self.stage == game_stage:
+            return self.valid_moves
+        else:
+            return self.update_valid_moves(board, game_stage)
+
 
 
 
@@ -72,11 +94,21 @@ class King(Figure):
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
 
-    def get_valid_moves(self, board):
-        directions = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+    def is_in_check(self, board, game_stage: int):
+        opponent_color = 1 if self.color == 0 else 0
+        for row in board:
+            for piece in row:
+                if piece and piece.color == opponent_color:
+                    if self.position in piece.get_valid_moves(board, game_stage):
+                        return True
+        return False                
+
+
+    def update_valid_moves(self, board, game_stage: int):
+        self.stage = game_stage
         possible_moves = []
 
-        for direction in directions:
+        for direction in self.directions:
             new_x = self.position[0] + direction[0]
             new_y = self.position[1] + direction[1]
 
@@ -97,25 +129,23 @@ class King(Figure):
             self.position = move
             board[pos_y][pos_x] = None
 
-            if self.is_in_check(board):
-                continue
-
-            valid_moves.append(move)
+            if not self.is_in_check(board, game_stage):
+                valid_moves.append(move)
 
             board[pos_y][pos_x] = self
             self.position = (pos_x, pos_y)
             board[move_y][move_x] = target
 
-        return valid_moves
 
-    def is_in_check(self, board):
-        opponent_color = 1 if self.color == 0 else 0
-        for row in board:
-            for piece in row:
-                if piece and piece.color == opponent_color:
-                    if self.position in piece.get_valid_moves(board):
-                        return True
-        return False                
+        self.valid_moves = valid_moves
+        return valid_moves        
+
+
+    def get_valid_moves(self, board, game_stage: int):
+        if self.stage == game_stage:
+            return self.valid_moves
+        else:
+            return self.update_valid_moves(board, game_stage)
 
 
 
@@ -130,14 +160,7 @@ class Qween(Figure):
 class Pawn(Figure):
     icons = ["♙", "♟"]
 
-    def __init__(self, color: int, position: tuple): #color 1 - white, 0 - black
-        self.position = position
-        self.color = color
-        self.icon = self.icons[self.color]
-
-
-    def get_valid_moves(self, board):
-
+    def update_valid_moves(self, board, game_stage: int):
         if self.color == 1:
             if self.position[1] == 6:
                 self.directions = [(0, -1), (0, -2), (-1, -1), (1, -1)]
@@ -150,6 +173,7 @@ class Pawn(Figure):
                 self.directions = [(0, 1), (-1, 1), (1, 1)]
 
 
+        self.stage = game_stage
         valid_moves = []
 
         for direction in self.directions[:-2]:
@@ -168,6 +192,15 @@ class Pawn(Figure):
                 if board[new_y][new_x] and board[new_y][new_x].color != self.color:  # По диагонали стоит вражеская фигура
                     valid_moves.append((new_x, new_y))
         
-        return valid_moves
+        self.valid_moves = valid_moves
+        return valid_moves    
+
+
+    def get_valid_moves(self, board, game_stage: int):
+        if self.stage == game_stage:
+            return self.valid_moves
+        else:
+            return self.update_valid_moves(board, game_stage)
+
 
 
